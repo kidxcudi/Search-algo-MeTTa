@@ -23,7 +23,7 @@ B → E → G
 **Run:**
 ```bash
 metta dfs.metta
-# Expected output: (F C E G D B A)  [DFS order from A]
+# Expected output: (A B D G E C F)  [DFS order from A]
 ```
 
 ---
@@ -42,7 +42,7 @@ Graph traversal that explores all neighbors at the current depth before moving d
 **Run:**
 ```bash
 metta bfs.metta
-# Expected output: (G F E D C B A)  [BFS order from A]
+# Expected output: (A B C D E F G)  [BFS order from A]
 ```
 
 ---
