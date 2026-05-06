@@ -1,4 +1,4 @@
-; --- Graph ---
+; --- Graph edges ---
 (edge A B)
 (edge A C)
 (edge B D)
@@ -7,34 +7,37 @@
 (edge D G)
 (edge E G)
 
-; --- Check if expression is empty ---
-(= (empty? $xs) (== (size-atom $xs) 0))
+; --- Check if a node has already been visited ---
+(= (member? $node $visited-list)
+   (foldl-atom $visited-list False $accumulator $element
+     (if (== $element $node) True $accumulator)))
 
-; --- Member check using foldl-atom ---
-(= (member? $x $xs)
-   (foldl-atom $xs False $acc $el
-     (if (== $el $x) True $acc)))
+; --- Get all neighbors of a node from the Atomspace ---
+(= (neighbors $node)
+   (collapse (match &self (edge $node $neighbor) $neighbor)))
 
-; --- Get neighbors from Atomspace ---
-(= (neighbors $n)
-   (collapse (match &self (edge $n $nb) $nb)))
+; --- Reverse an expression ---
+(= (reverse $expression $accumulator)
+   (if (== (size-atom $expression) 0)
+       $accumulator
+       (reverse (cdr-atom $expression)
+                (cons-atom (car-atom $expression) $accumulator))))
 
-; --- DFS ---
-(= (dfs $node $visited)
-   (if (member? $node $visited)
-       $visited
-       (let* (($v1   (cons-atom $node $visited))
-              ($nbrs (neighbors $node)))
-         (dfs-neighbors $nbrs $v1))))
+; --- DFS core: explore $current-node, thread visited list through ---
+(= (dfs $current-node $visited-list)
+   (if (member? $current-node $visited-list)
+       $visited-list
+       (dfs-neighbors (neighbors $current-node)
+                      (cons-atom $current-node $visited-list))))
 
-; --- Process each neighbor ---
-(= (dfs-neighbors $nbrs $visited)
-   (if (empty? $nbrs)
-       $visited
-       (let* (($head (car-atom $nbrs))
-              ($tail (cdr-atom $nbrs))
-              ($v1   (dfs $head $visited)))
-         (dfs-neighbors $tail $v1))))
+; --- Process each neighbor in order ---
+(= (dfs-neighbors $neighbor-list $visited-list)
+   (if (== (size-atom $neighbor-list) 0)
+       $visited-list
+       (let* (($first-neighbor       (car-atom $neighbor-list))
+              ($remaining-neighbors  (cdr-atom $neighbor-list))
+              ($updated-visited      (dfs $first-neighbor $visited-list)))
+         (dfs-neighbors $remaining-neighbors $updated-visited))))
 
 ; --- Run ---
-!(dfs A ())
+!(reverse (dfs A ()) ())
